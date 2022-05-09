@@ -30,9 +30,6 @@ enum Node {
         print: Box<Node>,
     },
     Block(Vec<Node>),
-    Eval {
-        eval: Box<Node>,
-    },
     Undefined,
 }
 
@@ -108,7 +105,6 @@ impl Runner {
                 .map(|node| self.eval(node))
                 .last()
                 .unwrap_or(Undefined),
-            Eval { eval } => self.eval(*eval),
         }
     }
 }
