@@ -22,17 +22,22 @@ To print a value, simply write:
 { "print": "x" }
 ```
 
+The `let` block allows you to assign names to values:
+```json
+{
+    "let": {
+        "x": 1,
+        "y": 2
+    }
+}
+```
+Variables have their scope limited of a function call or global scope. So, creating a new variable inside a function will not change a more global variable.
+
 Arithmetic operators like `+`, `-`, `*`, `/` can be expressed as a JSON object:
 ```json
 { "+": [12, "x"] }
 ```
 The result of this expression will be a sum of value `12` and the variable `x`. If an operation cannot be evaluated, its value will be `undefined`. Note that the JSON array here is not a block of instructions, but simply a short notation of two operans instead of `{ "left": 12, "right": "x" }`.
-
-Assignment is expressed in a similar way:
-```json
-{ "=": ["y", 2] }
-```
-The left operand is always a string. Variables have their scope limited of a function call or global scope. So, creating a new variable inside a function will not change a more global variable.
 
 How to create a function? Just:
 
@@ -48,10 +53,12 @@ This creates an anonymous function that returns `7`. Let's call it by passing an
 ```
 The `call` key specifies a function to call. The `pars` key specifies a function parameters, if it's empty then the key can be omitted.
 
-What if you need to give a name to a function? So, let's use the assignment:
+What if you need to give a name to a function? So, let's use the `let` block:
 ```json
 {
-    "=": ["function_name", { "fn": 7 }]
+    "let": {
+        "function_name": { "fn": 7 }
+    }
 }
 ```
 

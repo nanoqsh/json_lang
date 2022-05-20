@@ -1,11 +1,10 @@
 [
     {
-        "=": [
-            "function_name",
-            {
+        "let": {
+            "function_name": {
                 "fn": 7
             }
-        ]
+        }
     },
     {
         "print": {

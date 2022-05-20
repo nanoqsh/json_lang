@@ -6,6 +6,10 @@ use std::{collections::HashMap, io::Read};
 enum Node {
     Num(i32),
     Var(String),
+    Let {
+        #[serde(rename = "let")]
+        l: HashMap<String, Node>,
+    },
     Sum {
         #[serde(rename = "+")]
         sum: (Box<Node>, Box<Node>),
@@ -21,10 +25,6 @@ enum Node {
     Div {
         #[serde(rename = "/")]
         div: (Box<Node>, Box<Node>),
-    },
-    Assign {
-        #[serde(rename = "=")]
-        assign: (String, Box<Node>),
     },
     Fn {
         #[serde(rename = "fn")]
@@ -75,6 +75,14 @@ impl Runner {
         match node {
             Num(_) | Undefined => node,
             Var(name) => self.get_variable(name),
+            Let { l } => {
+                for (name, node) in l {
+                    let result = self.eval(node);
+                    self.vars.last_mut().unwrap().insert(name, result);
+                }
+
+                Undefined
+            }
             Sum { sum: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) => Num(a.wrapping_add(b)),
                 _ => Undefined,
@@ -92,13 +100,6 @@ impl Runner {
                 (Num(a), Num(b)) => Num(a.wrapping_div(b)),
                 _ => Undefined,
             },
-            Assign {
-                assign: (name, rhs),
-            } => {
-                let result = self.eval(*rhs);
-                self.vars.last_mut().unwrap().insert(name, result);
-                Undefined
-            }
             Fn { func } => *func,
             Call { call, pars } => {
                 self.vars.push(pars);
