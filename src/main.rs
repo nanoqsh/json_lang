@@ -10,9 +10,17 @@ enum Node {
         #[serde(rename = "+")]
         sum: (Box<Node>, Box<Node>),
     },
+    Sub {
+        #[serde(rename = "-")]
+        sub: (Box<Node>, Box<Node>),
+    },
     Mul {
         #[serde(rename = "*")]
         mul: (Box<Node>, Box<Node>),
+    },
+    Div {
+        #[serde(rename = "/")]
+        div: (Box<Node>, Box<Node>),
     },
     Assign {
         #[serde(rename = "=")]
@@ -23,7 +31,8 @@ enum Node {
         func: Box<Node>,
     },
     Call {
-        call: String,
+        call: Box<Node>,
+        #[serde(default)]
         pars: HashMap<String, Node>,
     },
     Print {
@@ -40,10 +49,7 @@ fn main() {
     std::io::stdin().read_to_string(&mut input).expect("read");
 
     let node = serde_json::from_str(&input).expect("parse");
-    match Runner::new().eval(node) {
-        Num(n) => println!("{n}"),
-        _ => {}
-    }
+    let _ = Runner::new().eval(node);
 }
 
 struct Runner {
@@ -70,11 +76,20 @@ impl Runner {
             Num(_) | Undefined => node,
             Var(name) => self.get_variable(name),
             Sum { sum: (a, b) } => match (self.eval(*a), self.eval(*b)) {
-                (Num(a), Num(b)) => Num(a + b),
+                (Num(a), Num(b)) => Num(a.wrapping_add(b)),
+                _ => Undefined,
+            },
+            Sub { sub: (a, b) } => match (self.eval(*a), self.eval(*b)) {
+                (Num(a), Num(b)) => Num(a.wrapping_sub(b)),
                 _ => Undefined,
             },
             Mul { mul: (a, b) } => match (self.eval(*a), self.eval(*b)) {
-                (Num(a), Num(b)) => Num(a * b),
+                (Num(a), Num(b)) => Num(a.wrapping_mul(b)),
+                _ => Undefined,
+            },
+            Div { div: (a, b) } => match (self.eval(*a), self.eval(*b)) {
+                (Num(_), Num(0)) => Undefined,
+                (Num(a), Num(b)) => Num(a.wrapping_div(b)),
                 _ => Undefined,
             },
             Assign {
@@ -86,9 +101,11 @@ impl Runner {
             }
             Fn { func } => *func,
             Call { call, pars } => {
-                let func = self.get_variable(call);
                 self.vars.push(pars);
-                let result = self.eval(func);
+                let result = match self.eval(*call) {
+                    Fn { func } => self.eval(*func),
+                    node => self.eval(node),
+                };
                 self.vars.pop();
                 result
             }

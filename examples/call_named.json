@@ -1,0 +1,15 @@
+[
+    {
+        "=": [
+            "function_name",
+            {
+                "fn": 7
+            }
+        ]
+    },
+    {
+        "print": {
+            "call": "function_name"
+        }
+    }
+]
