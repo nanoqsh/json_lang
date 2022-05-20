@@ -12,14 +12,9 @@ Numbers are just JSON numbers:
 12
 ```
 
-Variables. To declare or use a variable specify a regular JSON string. If the variable is not set, then it has the value `undefined`.
+To read a variable specify a regular JSON string. If the variable is not set, then it has the value `undefined`.
 ```json
 "x"
-```
-
-To print a value, simply write:
-```json
-{ "print": "x" }
 ```
 
 The `let` block allows you to assign names to values:
@@ -32,6 +27,11 @@ The `let` block allows you to assign names to values:
 }
 ```
 Variables have their scope limited of a function call or global scope. So, creating a new variable inside a function will not change a more global variable.
+
+To print a value, simply write:
+```json
+{ "print": "x" }
+```
 
 Arithmetic operators like `+`, `-`, `*`, `/` can be expressed as a JSON object:
 ```json

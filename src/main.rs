@@ -1,5 +1,8 @@
 use serde::Deserialize;
-use std::{collections::HashMap, io::Read};
+use std::{
+    collections::{BTreeMap as Map, HashMap},
+    io::Read,
+};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
@@ -8,7 +11,10 @@ enum Node {
     Var(String),
     Let {
         #[serde(rename = "let")]
-        l: HashMap<String, Node>,
+        l: Map<String, Node>,
+    },
+    Print {
+        print: Box<Node>,
     },
     Sum {
         #[serde(rename = "+")]
@@ -33,10 +39,7 @@ enum Node {
     Call {
         call: Box<Node>,
         #[serde(default)]
-        pars: HashMap<String, Node>,
-    },
-    Print {
-        print: Box<Node>,
+        pars: Map<String, Node>,
     },
     Block(Vec<Node>),
     Undefined,
@@ -83,6 +86,14 @@ impl Runner {
 
                 Undefined
             }
+            Print { print } => {
+                match self.eval(*print) {
+                    Num(n) => println!("{n}"),
+                    _ => println!("undefined"),
+                };
+
+                Undefined
+            }
             Sum { sum: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) => Num(a.wrapping_add(b)),
                 _ => Undefined,
@@ -102,21 +113,14 @@ impl Runner {
             },
             Fn { func } => *func,
             Call { call, pars } => {
-                self.vars.push(pars);
+                self.vars.push(HashMap::default());
+                let _ = self.eval(Let { l: pars });
                 let result = match self.eval(*call) {
                     Fn { func } => self.eval(*func),
                     node => self.eval(node),
                 };
                 self.vars.pop();
                 result
-            }
-            Print { print } => {
-                match self.eval(*print) {
-                    Num(n) => println!("{n}"),
-                    _ => println!("undefined"),
-                };
-
-                Undefined
             }
             Block(nodes) => nodes
                 .into_iter()
