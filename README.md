@@ -2,7 +2,7 @@
 Do you want to program in JSON? This simple executor allows you to do that.
 
 ### Constuctions
-The instruction block is an JSON array. It can list instructions that will be performed sequentially. The last operation is the result of the block expression.
+The instruction block is an JSON array. It can list instructions that will be performed sequentially. The last operation is the result of the block expression. If the block is empty, then the result is `undefined`.
 ```json
 []
 ```
@@ -17,6 +17,11 @@ To read a variable specify a regular JSON string. If the variable is not set, th
 "x"
 ```
 
+To create a string, you need to specify the `str` key:
+```json
+{ "str": "hello" }
+```
+
 The `let` block allows you to assign names to values:
 ```json
 {
@@ -28,9 +33,11 @@ The `let` block allows you to assign names to values:
 ```
 Variables have their scope limited of a function call or global scope. So, creating a new variable inside a function will not change a more global variable.
 
-To print a value, simply write:
+To print a value, specify the `print` key:
 ```json
-{ "print": "x" }
+{
+    "print": { "str": "Hello, World!" }
+}
 ```
 
 Arithmetic operators like `+`, `-`, `*`, `/` or the comparison operator `==` can be expressed as:
@@ -83,7 +90,7 @@ If you simply call this function without parameters, then the value of `x` will 
 }
 ```
 
-The conditional operator will return the `then` value if the `if` value is non-zero, otherwise `else`:
+The conditional operator will return the `then` value if the `if` value is non-zero or non-empty string, otherwise `else`:
 ```json
 {
     "if": { "==": [1, 1] },

@@ -8,6 +8,9 @@ use std::{
 #[serde(untagged)]
 enum Node {
     Num(i32),
+    Str {
+        str: String,
+    },
     Var(String),
     Let {
         #[serde(rename = "let")]
@@ -88,7 +91,7 @@ impl Runner {
 
     fn eval(&mut self, node: Node) -> Node {
         match node {
-            Num(_) | Undefined => node,
+            Num(_) | Str { .. } | Undefined => node,
             Var(name) => self.get_variable(name),
             Let { l } => {
                 for (name, node) in l {
@@ -101,6 +104,7 @@ impl Runner {
             Print { print } => {
                 match self.eval(*print) {
                     Num(n) => println!("{n}"),
+                    Str { str } => println!("{str}"),
                     _ => println!("undefined"),
                 }
 
@@ -141,6 +145,8 @@ impl Runner {
             If { i, t, e } => match self.eval(*i) {
                 Num(0) | Undefined => self.eval(*e),
                 Num(_) => self.eval(*t),
+                Str { str } if str.is_empty() => self.eval(*e),
+                Str { .. } => self.eval(*t),
                 _ => Undefined,
             },
             Block(nodes) => nodes

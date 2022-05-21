@@ -6,7 +6,11 @@
                 1
             ]
         },
-        "then": 1,
-        "else": 2
+        "then": {
+            "str": "true"
+        },
+        "else": {
+            "str": "false"
+        }
     }
 }
