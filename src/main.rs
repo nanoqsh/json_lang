@@ -11,37 +11,37 @@ enum Node {
     Var(String),
     Let {
         #[serde(rename = "let")]
-        l: Map<String, Node>,
+        l: Map<String, Self>,
     },
     Print {
-        print: Box<Node>,
+        print: Box<Self>,
     },
     Sum {
         #[serde(rename = "+")]
-        sum: (Box<Node>, Box<Node>),
+        sum: (Box<Self>, Box<Self>),
     },
     Sub {
         #[serde(rename = "-")]
-        sub: (Box<Node>, Box<Node>),
+        sub: (Box<Self>, Box<Self>),
     },
     Mul {
         #[serde(rename = "*")]
-        mul: (Box<Node>, Box<Node>),
+        mul: (Box<Self>, Box<Self>),
     },
     Div {
         #[serde(rename = "/")]
-        div: (Box<Node>, Box<Node>),
+        div: (Box<Self>, Box<Self>),
     },
     Fn {
         #[serde(rename = "fn")]
-        func: Box<Node>,
+        f: Box<Self>,
     },
     Call {
-        call: Box<Node>,
+        call: Box<Self>,
         #[serde(default)]
-        pars: Map<String, Node>,
+        pars: Map<String, Self>,
     },
-    Block(Vec<Node>),
+    Block(Vec<Self>),
     Undefined,
 }
 
@@ -81,7 +81,7 @@ impl Runner {
             Let { l } => {
                 for (name, node) in l {
                     let result = self.eval(node);
-                    self.vars.last_mut().unwrap().insert(name, result);
+                    self.vars.last_mut().expect("last").insert(name, result);
                 }
 
                 Undefined
@@ -90,7 +90,7 @@ impl Runner {
                 match self.eval(*print) {
                     Num(n) => println!("{n}"),
                     _ => println!("undefined"),
-                };
+                }
 
                 Undefined
             }
@@ -111,12 +111,12 @@ impl Runner {
                 (Num(a), Num(b)) => Num(a.wrapping_div(b)),
                 _ => Undefined,
             },
-            Fn { func } => *func,
+            Fn { f } => *f,
             Call { call, pars } => {
                 self.vars.push(HashMap::default());
                 let _ = self.eval(Let { l: pars });
                 let result = match self.eval(*call) {
-                    Fn { func } => self.eval(*func),
+                    Fn { f } => self.eval(*f),
                     node => self.eval(node),
                 };
                 self.vars.pop();
