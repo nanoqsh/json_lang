@@ -32,6 +32,10 @@ enum Node {
         #[serde(rename = "/")]
         div: (Box<Self>, Box<Self>),
     },
+    Eq {
+        #[serde(rename = "==")]
+        eq: (Box<Self>, Box<Self>),
+    },
     Fn {
         #[serde(rename = "fn")]
         f: Box<Self>,
@@ -40,6 +44,14 @@ enum Node {
         call: Box<Self>,
         #[serde(default)]
         pars: Map<String, Self>,
+    },
+    If {
+        #[serde(rename = "if")]
+        i: Box<Self>,
+        #[serde(rename = "then")]
+        t: Box<Self>,
+        #[serde(rename = "else")]
+        e: Box<Self>,
     },
     Block(Vec<Self>),
     Undefined,
@@ -111,6 +123,10 @@ impl Runner {
                 (Num(a), Num(b)) => Num(a.wrapping_div(b)),
                 _ => Undefined,
             },
+            Eq { eq: (a, b) } => match (self.eval(*a), self.eval(*b)) {
+                (Num(a), Num(b)) if a == b => Num(1),
+                _ => Num(0),
+            },
             Fn { f } => *f,
             Call { call, pars } => {
                 self.vars.push(HashMap::default());
@@ -122,6 +138,11 @@ impl Runner {
                 self.vars.pop();
                 result
             }
+            If { i, t, e } => match self.eval(*i) {
+                Num(0) | Undefined => self.eval(*e),
+                Num(_) => self.eval(*t),
+                _ => Undefined,
+            },
             Block(nodes) => nodes
                 .into_iter()
                 .map(|node| self.eval(node))

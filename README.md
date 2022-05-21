@@ -33,7 +33,7 @@ To print a value, simply write:
 { "print": "x" }
 ```
 
-Arithmetic operators like `+`, `-`, `*`, `/` can be expressed as a JSON object:
+Arithmetic operators like `+`, `-`, `*`, `/` or the comparison operator `==` can be expressed as:
 ```json
 { "+": [12, "x"] }
 ```
@@ -80,5 +80,14 @@ If you simply call this function without parameters, then the value of `x` will 
         "fn": { "+": [1, "x"] }
     },
     "pars": { "x": 2 }
+}
+```
+
+The conditional operator will return the `then` value if the `if` value is non-zero, otherwise `else`:
+```json
+{
+    "if": { "==": [1, 1] },
+    "then": 1,
+    "else": 2
 }
 ```
