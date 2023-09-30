@@ -2,7 +2,7 @@
 Do you want to program in JSON? This simple executor allows you to do that.
 
 ### Constuctions
-The instruction block is an JSON array. It can list instructions that will be performed sequentially. The last operation is the result of the block expression. If the block is empty, then the result is `undefined`.
+The instruction block is an JSON array. It can list instructions that will be performed sequentially. The last operation is the result of the block expression. If the block is empty, then the result is `nil`.
 ```json
 []
 ```
@@ -12,7 +12,7 @@ Numbers are just JSON numbers:
 12
 ```
 
-To read a variable specify a regular JSON string. If the variable is not set, then it has the value `undefined`.
+To read a variable specify a regular JSON string. If the variable is not set, then it has the value `nil`.
 ```json
 "x"
 ```
@@ -44,7 +44,7 @@ Arithmetic operators like `+`, `-`, `*`, `/` or the comparison operator `==` can
 ```json
 { "+": [12, "x"] }
 ```
-The result of this expression will be a sum of value `12` and the variable `x`. If an operation cannot be evaluated, its value will be `undefined`. Note that the JSON array here is not a block of instructions, but simply a short notation of two operans instead of `{ "left": 12, "right": "x" }`.
+The result of this expression will be a sum of value `12` and the variable `x`. If an operation cannot be evaluated, its value will be `nil`. Note that the JSON array here is not a block of instructions, but simply a short notation of two operans instead of `{ "left": 12, "right": "x" }`.
 
 How to create a function? Just:
 

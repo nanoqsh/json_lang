@@ -1,13 +1,17 @@
-use serde::Deserialize;
-use std::{
-    collections::{BTreeMap as Map, HashMap},
-    io::Read,
+use {
+    serde::Deserialize,
+    std::{
+        collections::{BTreeMap as Map, HashMap},
+        io,
+    },
 };
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize)]
 #[serde(untagged)]
 enum Node {
-    Num(i32),
+    #[default]
+    Nil,
+    Num(i64),
     Str {
         str: String,
     },
@@ -57,15 +61,13 @@ enum Node {
         e: Box<Self>,
     },
     Block(Vec<Self>),
-    Undefined,
 }
 
+#[allow(clippy::enum_glob_use)]
 use Node::*;
 
 fn main() {
-    let mut input = String::new();
-    std::io::stdin().read_to_string(&mut input).expect("read");
-
+    let input = io::read_to_string(io::stdin()).expect("read");
     let node = serde_json::from_str(&input).expect("parse");
     let _ = Runner::new().eval(node);
 }
@@ -81,51 +83,51 @@ impl Runner {
         }
     }
 
-    fn get_variable(&self, name: String) -> Node {
+    fn get_variable(&self, name: &str) -> Node {
         self.vars
             .iter()
-            .find_map(|map| map.get(&name))
+            .find_map(|map| map.get(name))
             .cloned()
-            .unwrap_or(Undefined)
+            .unwrap_or_default()
     }
 
     fn eval(&mut self, node: Node) -> Node {
         match node {
-            Num(_) | Str { .. } | Undefined => node,
-            Var(name) => self.get_variable(name),
+            Num(_) | Str { .. } | Nil => node,
+            Var(name) => self.get_variable(&name),
             Let { l } => {
                 for (name, node) in l {
                     let result = self.eval(node);
                     self.vars.last_mut().expect("last").insert(name, result);
                 }
 
-                Undefined
+                Nil
             }
             Print { print } => {
                 match self.eval(*print) {
                     Num(n) => println!("{n}"),
                     Str { str } => println!("{str}"),
-                    _ => println!("undefined"),
+                    _ => println!("nil"),
                 }
 
-                Undefined
+                Nil
             }
             Sum { sum: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) => Num(a.wrapping_add(b)),
-                _ => Undefined,
+                _ => Nil,
             },
             Sub { sub: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) => Num(a.wrapping_sub(b)),
-                _ => Undefined,
+                _ => Nil,
             },
             Mul { mul: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) => Num(a.wrapping_mul(b)),
-                _ => Undefined,
+                _ => Nil,
             },
             Div { div: (a, b) } => match (self.eval(*a), self.eval(*b)) {
-                (Num(_), Num(0)) => Undefined,
+                (Num(_), Num(0)) => Nil,
                 (Num(a), Num(b)) => Num(a.wrapping_div(b)),
-                _ => Undefined,
+                _ => Nil,
             },
             Eq { eq: (a, b) } => match (self.eval(*a), self.eval(*b)) {
                 (Num(a), Num(b)) if a == b => Num(1),
@@ -143,17 +145,16 @@ impl Runner {
                 result
             }
             If { i, t, e } => match self.eval(*i) {
-                Num(0) | Undefined => self.eval(*e),
-                Num(_) => self.eval(*t),
+                Num(0) | Nil => self.eval(*e),
                 Str { str } if str.is_empty() => self.eval(*e),
-                Str { .. } => self.eval(*t),
-                _ => Undefined,
+                Num(_) | Str { .. } => self.eval(*t),
+                _ => Nil,
             },
             Block(nodes) => nodes
                 .into_iter()
                 .map(|node| self.eval(node))
                 .last()
-                .unwrap_or(Undefined),
+                .unwrap_or_default(),
         }
     }
 }
