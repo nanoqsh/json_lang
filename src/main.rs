@@ -67,9 +67,23 @@ enum Node {
 use Node::*;
 
 fn main() {
-    let input = io::read_to_string(io::stdin()).expect("read");
-    let node = serde_json::from_str(&input).expect("parse");
-    let _ = Runner::new().eval(node);
+    let input = match io::read_to_string(io::stdin()) {
+        Ok(input) => input,
+        Err(err) => {
+            eprintln!("failed to read stdin: {err}");
+            return;
+        }
+    };
+
+    let node = match serde_json::from_str(&input) {
+        Ok(node) => node,
+        Err(err) => {
+            eprintln!("failed to parse json: {err}");
+            return;
+        }
+    };
+
+    Runner::new().eval(node);
 }
 
 struct Runner {
